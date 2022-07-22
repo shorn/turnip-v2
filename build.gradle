@@ -1,0 +1,190 @@
+plugins{
+  id 'application'
+}
+
+group 'cloud.kopi.turnip'
+version '1.0-SNAPSHOT'
+
+repositories{
+  mavenCentral()
+}
+
+sourceSets {
+  funcTest { }
+}
+
+configurations {
+  funcTestImplementation.extendsFrom(testImplementation)
+}
+
+java{
+  toolchain{
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+// compile funcTest classes - but don't run by default (needs Auth0 setup)
+tasks.build.dependsOn funcTestClasses
+
+tasks.withType(JavaCompile) {
+  // show details of deprecated usage
+  options.compilerArgs += "-Xlint:deprecation"
+  // show details of unchecked or unsafe operations
+  options.compilerArgs += "-Xlint:unchecked"
+  // warn about dodgy finalizers
+  options.compilerArgs += "-Xlint:finally"
+
+  // UTF-8 everywhere - yes, even (especially!) when compiling 
+  // your IDE should be set to UTF-8, too
+  options.encoding = "UTF-8"
+}
+
+dependencies{
+  // use SLf4J API to log against - pkg: org.slf4j
+  // using 2.0.0 for turnip code because that's what jetty uses
+  implementation 'org.slf4j:slf4j-api:2.0.0-alpha1'
+  
+  // embedded Jetty server - pkg: org.eclipse.jetty.server
+  //noinspection GradlePackageUpdate - can'ut use 11, see readme
+  implementation 'org.eclipse.jetty:jetty-server:10.0.6'
+  // Jetty support for Servlet API - pkg: org.eclipse.jetty.servlet
+  //noinspection GradlePackageUpdate
+  implementation 'org.eclipse.jetty:jetty-servlet:10.0.6'
+
+  // support for JSON serialization for Spring endpoints
+  // can this be "runtimeOnly"?
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+  
+  // core spring/web - pkg: org.springframework
+  implementation 'org.springframework:spring-webmvc:5.3.16'
+  
+  // core spring/web security - pkg: import org.sf.security
+  implementation 'org.springframework.security:spring-security-core:5.6.2'
+  // pkg: org.sf.security.web
+  implementation 'org.springframework.security:spring-security-web:5.6.2'
+  
+  // for configuring through code - pkg: org.sf.security.config
+  implementation 'org.springframework.security:spring-security-config:5.6.2'
+
+  // integrate Auth0 JWT into spring-security  
+  implementation 'com.auth0:auth0-spring-security-api:1.4.2'
+  // pkg: com.auth0.jwt
+  implementation 'com.auth0:java-jwt:3.18.3'
+
+  //  implementation("com.google.guava:guava:30.1.1-jre")
+
+  // use the standard jar instead of binding unnecessarily to Jetty
+  // pkg: javax.servlet 
+  // Spring doesn't yet support Servlet 5 (i.e. pkg: jakarta.servlet)
+  compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+
+  // intially for tests to talk to Auth0, but I'm sure I'll end up using it 
+  runtimeOnly 'org.apache.httpcomponents.client5:httpclient5-win:5.1.1'
+
+  // use logback at runtime for Turnip, Jetty, Spring, etc.
+  runtimeOnly 'ch.qos.logback:logback-core:1.3.0-alpha5'
+  runtimeOnly 'ch.qos.logback:logback-classic:1.3.0-alpha5'
+
+  // for PostConstruct/PreDestroy - pkg: javax.annotation
+  implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+  // junit 5 - pkg: org.junit.jupiter
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+  // for integrating junit and spring - pkg: org.springframework.test
+  testImplementation 'org.springframework:spring-test:5.3.16'
+  testImplementation "org.assertj:assertj-core:3.22.0"
+
+  // for compilation depending on prod classes   
+  funcTestImplementation sourceSets.main.output
+  
+  /* for compilation depending on test util classes; without this , funcTest 
+  will fail to compile, can't find stuff like BDD */
+  funcTestImplementation sourceSets.test.output
+  
+  /* without this, funcTest runtime fails to find logback-test.xml when run
+  from IDEA. IDE issue only -  gradle `funcTest` task works fine. */
+  funcTestRuntimeOnly sourceSets.test.runtimeClasspath
+}
+
+application{
+  mainClass = 'turnip.App'
+}
+
+applicationDefaultJvmArgs = [
+  // UTC everywhere, always
+  '-Duser.timezone=UTC',
+  // UTF-8 everywhere, always
+  "-Dfile.encoding=UTF-8",
+  // for consistency, rather than any specific reason 
+  "-Duser.language=", "-Duser.country=", "-Duser.variant=",
+]
+
+test{
+  // execute tests even if no prod or test code has changed
+  outputs.upToDateWhen {false}
+
+  useJUnitPlatform()
+  jvmArgs += applicationDefaultJvmArgs
+  testLogging.showStandardStreams = true
+}
+
+task funcTest(type: Test) {
+  description = "Run FUNCtional tests"
+  group = "verification"
+
+  testClassesDirs = sourceSets.funcTest.output.classesDirs
+  classpath += sourceSets.funcTest.runtimeClasspath
+
+  // execute tests even if no prod or test code has changed
+  outputs.upToDateWhen {false}
+
+  testLogging{
+    showStandardStreams = true
+    exceptionFormat = 'full'
+  }
+
+  // `set()` is just to suppress IDEA warning
+  javaLauncher.set(javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(17) 
+  })
+
+  useJUnitPlatform()
+
+  jvmArgs += applicationDefaultJvmArgs
+}
+
+task uberJar(type: Jar) {
+  group "distribution"
+  // using `=`, IDEA error warn about archiveClassifier exceeds access rights  
+  archiveClassifier.set('uber')
+
+  // different name from standard jar and don't want version in the name
+  archiveFileName = "turnip-app.jar"
+
+  //noinspection GroovyAssignabilityCheck
+  manifest{
+    mainClassName = "turnip.App"
+    //noinspection GroovyAssignabilityCheck
+    duplicatesStrategy "EXCLUDE"
+    attributes (
+      'Main-Class': 'turnip.App',
+      "Implementation-Title": "Turnip",
+      "Implementation-Version": archiveVersion,
+    )
+  }
+  
+  dependsOn configurations.runtimeClasspath
+  from sourceSets.main.output
+  from {
+    configurations.runtimeClasspath.findAll { 
+      it.name.endsWith('jar') }.collect { zipTree(it) 
+    }
+  }
+  
+  doFirst{
+    println "generating uberJar to ${archiveFile.get()}"
+  }
+}
+
