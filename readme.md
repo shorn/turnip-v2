@@ -1,3 +1,16 @@
+**NOTE**: this repo is not currenlty working.
+The Spring/Jetty server will boot, but you can't make endpoint calls. 
+
+The `auth0-spring-security-api` is not compatible with Spring-6 - it's built
+against the old `javax.servlet` package and will fail when it actually runs.
+
+Apparently Spring has built-in OAuth2 support, but I'm not sure if that's
+core Spring or spring-b**t.  Either way, given Auth0's been swallowed by Okta,
+it's probably time to learn to do this without using Auth0 libraries.
+
+----
+
+
 Example project for running a Jetty server with JDK 17, Spring, Auth0 and NOT 
 using spring-b**t.
 
