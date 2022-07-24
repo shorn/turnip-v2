@@ -1,5 +1,8 @@
 package turnip.spring.config;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.servlet.ModelAndView;
@@ -11,9 +14,6 @@ import turnip.spring.security.ApiSafeException;
 import turnip.util.DateUtil;
 import turnip.util.Log;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 import static turnip.util.Log.to;
@@ -78,7 +78,7 @@ public class RedactingExceptionResolver extends AbstractHandlerExceptionResolver
     if( ex instanceof BadCredentialsException || 
       ex instanceof NotAuthorizedExcepton
     ){
-      // don't log stacks for thse
+      // don't log stacks for these
       return;
     }
     

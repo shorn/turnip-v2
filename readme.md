@@ -22,5 +22,12 @@ the Spring properties as per [auth0.md](./doc/auth0.md).
 Once configured, the functonal tests can be run with the `funcTest` task.
 
 
+## Running App.main()
 
+If you want to start the app from your IDE, remember to specify JVM options:
 
+`-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language= -Duser.country= -Duser.variant=`
+
+The properties when running via main method (as opposed to functest) are loaded
+from `~/.config/turnip/env.properties`, see 
+[AppConfig](/src/main/java/turnip/spring/config/AppConfig.java).

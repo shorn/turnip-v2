@@ -16,6 +16,10 @@ public class App {
     normaliseJvmDefaults();
     
     var jetty = new EmbeddedJetty();
+    /* IDEA whining about not using try-with-resources, but pretty sure we  
+    don't want that given we let the main method return and rely on the 
+    daemon threads to keep the JVM alive.  */
+    //noinspection resource
     jetty.configureHttpConnector(PORT);
     jetty.addServletContainerInitializer( (sci, ctx) -> 
         AppConfig.initServletContext(ctx) );

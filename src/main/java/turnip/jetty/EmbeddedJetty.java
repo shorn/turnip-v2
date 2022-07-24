@@ -1,5 +1,6 @@
 package turnip.jetty;
 
+import jakarta.servlet.ServletContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -9,7 +10,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletContainerInitializer;
 
 public class EmbeddedJetty {
 
@@ -43,6 +43,9 @@ public class EmbeddedJetty {
   }
 
   public void startJoin() throws Exception {
+    /* Jetty 11 throws an exception here on Windows: 
+     "Could not configure SO_REUSEPORT to false on ServerSocketChannelImpl".
+     Happens even if you set to false 🤬 - can safely ignore. */
     server.start();
 
     // Don't know why I'm doing this - proud member of the cargo cult

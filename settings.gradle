@@ -1,2 +1,37 @@
 rootProject.name = 'turnip-v2'
 
+dependencyResolutionManagement{
+  versionCatalogs{
+    libs{
+      version('spring6', '6.0.0-M5')
+      version('jetty11', '11.0.9')
+
+      // core spring/web - pkg: org.springframework
+      library('spring-webmvc', 'org.springframework', 'spring-webmvc').versionRef('spring6')
+      // core spring/web security - pkg: import org.sf.security
+      library('spring-security-core', 'org.springframework.security', 'spring-security-core').versionRef('spring6')
+      // pkg: org.sf.security.web
+      library('spring-security-web', 'org.springframework.security', 'spring-security-web').versionRef('spring6')
+      // for configuring through code - pkg: org.sf.security.config
+      library('spring-security-config', 'org.springframework.security', 'spring-security-config').versionRef('spring6')
+      bundle('spring6', [
+        'spring-webmvc',
+        'spring-security-core',
+        'spring-security-web',
+        'spring-security-config',
+      ])
+
+      // embedded Jetty server - pkg: org.eclipse.jetty.server
+      library('jetty-server', 'org.eclipse.jetty','jetty-server').versionRef('jetty11')
+      // Jetty support for Servlet API - pkg: org.eclipse.jetty.servlet
+      library('jetty-servlets', 'org.eclipse.jetty','jetty-servlets').versionRef('jetty11')
+      // not sure
+      library('jetty-servlet', 'org.eclipse.jetty','jetty-servlet').versionRef('jetty11')
+      bundle('jetty11', ['jetty-server', 'jetty-servlets', 'jetty-servlet'])
+
+    }
+  }
+}
+
+
+

@@ -1,5 +1,7 @@
 package turnip.spring.config;
 
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletRegistration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,9 +15,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import turnip.util.Log;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
 
 import static java.util.Collections.emptySet;
 import static turnip.util.Log.to;
