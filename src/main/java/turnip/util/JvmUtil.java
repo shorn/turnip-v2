@@ -85,4 +85,8 @@ public class JvmUtil {
     log.info("build-info:\n%s", IoUtil.linesAsString(buildInfo));
   }
 
+  public static boolean isWindows(){
+    // not a lot of research went into this impl, feel free to change it
+    return System.getProperty("os.name").toLowerCase().contains("windows");
+  }
 }
